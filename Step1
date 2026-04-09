@@ -1,0 +1,59 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SECTION 1 — DATA GENERATION
+# ─────────────────────────────────────────────────────────────────────────────
+
+def generate_institutional_portfolio(n_records: int = 20_000, seed: int = 42) -> pd.DataFrame:
+    """
+    Generates a realistic synthetic trade finance portfolio.
+
+    Design choices that mirror real-world distributions:
+    - Invoice amounts follow a Gamma distribution (right-skewed, as in practice)
+    - Days outstanding are uniform across the 0-119 range
+    - Dispute rate set at 1.5% (industry-typical for trade finance)
+    - 150 distinct debtors for meaningful concentration analysis
+
+    Parameters
+    ----------
+    n_records : int
+        Number of invoice records to simulate.
+    seed : int
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    pd.DataFrame
+        Portfolio DataFrame with columns:
+        invoice_id, debtor_name, amount, days_outstanding, is_disputed,
+        industry, credit_rating, country
+    """
+    np.random.seed(seed)
+    n_debtors = 150
+    debtors = [f"Debtor_{i:03d}" for i in range(1, n_debtors + 1)]
+
+    # Additional enrichment columns for deeper analysis
+    industries = ["Manufacturing", "Retail", "Energy", "Technology",
+                  "Agriculture", "Healthcare", "Construction", "Logistics"]
+    ratings = ["AAA", "AA", "A", "BBB", "BB", "B", "CCC"]
+    rating_weights = [0.05, 0.10, 0.20, 0.30, 0.20, 0.10, 0.05]
+    countries = ["US", "DE", "GB", "FR", "JP", "CN", "CA", "AU", "BR", "SG"]
+
+    # Assign fixed attributes per debtor (consistent across all their invoices)
+    debtor_industry = {d: np.random.choice(industries) for d in debtors}
+    debtor_rating   = {d: np.random.choice(ratings, p=rating_weights) for d in debtors}
+    debtor_country  = {d: np.random.choice(countries) for d in debtors}
+
+    chosen_debtors = np.random.choice(debtors, n_records)
+
+    data = {
+        "invoice_id":       np.arange(1, n_records + 1),
+        "debtor_name":      chosen_debtors,
+        "amount":           np.random.gamma(shape=1.5, scale=6_000, size=n_records),
+        "days_outstanding": np.random.randint(0, 120, size=n_records),
+        "is_disputed":      np.random.choice([True, False], n_records, p=[0.015, 0.985]),
+        "industry":         [debtor_industry[d] for d in chosen_debtors],
+        "credit_rating":    [debtor_rating[d]   for d in chosen_debtors],
+        "country":          [debtor_country[d]  for d in chosen_debtors],
+    }
+    df = pd.DataFrame(data)
+    df["amount"] = df["amount"].clip(lower=500)   # Minimum invoice floor of $500
+    return df
