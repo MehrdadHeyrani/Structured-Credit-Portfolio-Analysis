@@ -72,7 +72,7 @@ Upon execution, the script generates:
 *   **Executive Summary Report**: A comprehensive textual report printed directly to the console with key metrics and insights.
 *   **`trade_finance_dashboard.png`**: A detailed, multi-panel visual summary of the portfolio's risk and liquidity.
 
-    <img src="dash1.png" alt="" width="1500" align="center"/>
+    <img src="dash2.png" alt="" width="1500" align="center"/>
 
 *   **Executive Summary Report**: A comprehensive textual report printed directly to the console with key metrics and insights.
 
